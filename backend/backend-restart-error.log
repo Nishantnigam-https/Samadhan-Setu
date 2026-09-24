@@ -1,0 +1,7 @@
+INFO:     Started server process [12456]
+INFO:     Waiting for application startup.
+2026-09-17 19:22:57,877 WARNING RESET_CODE is not configured; password recovery is disabled.
+2026-09-17 19:22:57,880 INFO PUBLIC_BASE_URL is set to a loopback address, so problem QR codes will only resolve on this machine. Set it to your LAN IP or a public HTTPS URL for real-world QR scanning.
+2026-09-17 19:22:57,889 INFO Ledger verified OK — 12 blocks.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)

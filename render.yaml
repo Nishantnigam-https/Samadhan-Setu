@@ -1,0 +1,63 @@
+# Render Blueprint for the Samadhan Setu backend.
+#
+# Usage:
+#   1. Push this repo to GitHub.
+#   2. In the Render dashboard: New -> Blueprint -> pick this repo.
+#   3. Render reads this file and creates the service below automatically.
+#   4. After the first deploy, open the service's "Environment" tab and fill
+#      in ALLOWED_ORIGINS, PUBLIC_BASE_URL and (optionally) GOVT_RESET_CODE —
+#      these are marked "sync: false" so Render prompts you for them instead
+#      of storing them in this file.
+#   5. Copy the service's public URL (e.g. https://samadhan-setu-backend.onrender.com)
+#      — you'll need it as VITE_API_URL when you deploy the frontend (see
+#      vercel.json / SETUP.md).
+#
+# The persistent disk keeps the SQLite database and the ed25519/Fernet signing
+# keys across redeploys. Without it, every deploy would wipe all registered
+# users and start a brand new (incompatible) audit-ledger keypair.
+
+services:
+  - type: web
+    name: samadhan-setu-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    disk:
+      name: samadhan-setu-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      # Set this to your deployed frontend's exact origin(s), comma-separated,
+      # e.g. https://samadhan-setu.vercel.app — no trailing slash.
+      - key: ALLOWED_ORIGINS
+        sync: false
+      # Set this to this service's own public HTTPS URL once you know it.
+      - key: PUBLIC_BASE_URL
+        sync: false
+      # Leave empty unless you intentionally want the government demo
+      # password-recovery flow enabled in production.
+      - key: GOVT_RESET_CODE
+        sync: false
+      - key: DB_PATH
+        value: /var/data/samadhan_setu.db
+      - key: KEYS_DIR
+        value: /var/data/keys
+      # "keyword" skips trying to reach a local Ollama server and uses the
+      # deterministic fallback classifier directly. Set to "ollama" once
+      # OLLAMA_BASE_URL below points at your separately-hosted Ollama server
+      # (see OLLAMA_HOSTING.md) — otherwise every AI request will wait out
+      # the AI_TIMEOUT_SECONDS timeout before falling back anyway.
+      - key: AI_ENGINE
+        value: keyword
+      # Fill these in once your Ollama server (see OLLAMA_HOSTING.md) is up.
+      - key: OLLAMA_BASE_URL
+        sync: false
+      - key: OLLAMA_MODEL
+        value: qwen2.5:3b
+      - key: OLLAMA_API_KEY
+        sync: false
+      - key: ENFORCE_JHARKHAND_GPS
+        value: "false"
